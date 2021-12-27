@@ -1,0 +1,7 @@
+image: gitpod/workspace-flutter
+
+vscode:
+  extensions:
+    - dart-code.dart-code@3.20.1
+    - dart-code.flutter@3.20.0
+    - vscodevim.vim
