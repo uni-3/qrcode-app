@@ -139,3 +139,136 @@ buildDialog(BuildContext context) {
 
 
 // qr code scanner view
+@immutable
+class ConfirmViewArguments {
+  const ConfirmViewArguments({
+    required this.type,
+    required this.data
+  });
+  final String type;
+  final String data;
+}
+
+class QRcodeScannerView extends StatefulWidget {
+  @override
+  _QRcodeScannerViewState createState() => _QRcodeScannerViewState();
+}
+
+class _QRcodeScannerViewState extends State<QRcodeScannerView> {
+  QRViewController? _qrController;
+  final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
+  bool _isQRScanned = false;
+
+  @override
+  void reassemble(){
+    super.reassemble();
+    if (Platform.isAndroid) {
+      _qrController?.parseCamera();
+    }
+    _qrController?.resumeCamera();
+  }
+
+  @override
+  void dispose() {
+    _qrController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("scan QR code")),
+      body: Column(
+        children: <Widget>[
+          Expanded(
+            flex: 4,
+            child: _buildQRView(context)
+          ),
+          Expanded(
+            flex: 1,
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  const Text("scan code"),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await _qrController?.toggleFlash();
+                            setState(() {});
+                          },
+                          child: FutureBuilder(
+                            future: _qrController?.getFlashStatus(),
+                            builder: (context, snapshot) => Text("Flash: ${snapshot.data}"),
+                          )
+                        )
+                      ),
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await _qrController?.toggleFlash();
+                            setState(() {});
+                          },
+                          child: FutureBuilder(
+                            future: _qrController?.getCameraInfo(),
+                            builder: (context, snapshot) => snapshot.data != null ? Text(
+                              "camera facing ${describeEnum(snapshot.data!)}"
+                              ) : const Text("loading"),
+                            )
+                          )
+                      )
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await _qrController?.pauseCamera();
+                          },
+                          child: const Text(
+                            "pause",
+                            style: TextStyle(fontSize: 20)
+                          )
+                        )
+                      ),
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await _qrController?.resumeCamera();
+                          },
+                          child: const Text(
+                            "resume",
+                            style: TextStyle(fontSize: 20)
+                          )
+                        )
+                      ),
+                    ],
+                  )
+                ],
+              )
+            )
+
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQRView(BuildContext context) {
+
+  }
+
+
+}
