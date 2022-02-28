@@ -1,4 +1,7 @@
 image: gitpod/workspace-flutter
+tasks:
+  - init: |
+      flutter pub get
 
 vscode:
   extensions:

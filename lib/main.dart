@@ -1,7 +1,9 @@
 import 'dart:html';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 void main() {
   runApp(const MyApp());
@@ -67,6 +69,12 @@ class _MyHomePageState extends State<MyHomePage> {
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+}
+
+class Const {
+  static const routeFirstPage = '/home';
+  static const routeQRCodeScanner = '/qr-code-scanner';
+  static const routeConfirm = '/confirm';
 }
 
 
@@ -267,8 +275,50 @@ class _QRcodeScannerViewState extends State<QRcodeScannerView> {
   }
 
   Widget _buildQRView(BuildContext context) {
-
+    return QRView(
+      key: _qrKey,
+      onQRViewCreated: _onQRViewCreated,
+      overlay: QrScannerOverlayShape(
+        borderColor: Colors.green,
+        borderRadius: 16,
+        borderLength: 24,
+        borderWidth: 8,
+      ),
+    );
   }
 
+  void _onQRViewCreated(QRViewController qrController) {
+    setState(() {
+      _qrController = qrController;
+    });
 
+    qrController.scannedDataStream.listen((scanData) {
+      if(scanData.code == null ) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("qr code data does not exitst")),
+        );
+      }
+      _transitionToNextScreen(describeEnum(scanData.format), scanData.code!);
+    });
+  }
+
+  Future<void> _transitionToNextScreen(String type, String data) async {
+    if (!_isQRScanned) {
+      // カメラを一時停止
+      _qrController?.pauseCamera();
+      _isQRScanned = true;
+      // 次の画面へ遷移
+      await Navigator.pushNamed(
+        context,
+        Const.routeConfirm,
+        arguments: ConfirmViewArguments(type: type, data: data),
+      ).then(
+        // 遷移先画面から戻った場合カメラを再開
+        (value) {
+          _qrController?.resumeCamera();
+          _isQRScanned = false;
+        },
+      );
+    }
+  }
 }
